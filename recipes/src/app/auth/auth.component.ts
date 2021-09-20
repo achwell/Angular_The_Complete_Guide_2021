@@ -1,20 +1,24 @@
-import { Component } from '@angular/core';
+import {Component, ComponentFactoryResolver, OnDestroy, ViewChild} from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 
 import { AuthService, AuthResponseData } from './auth.service';
+import {AlertComponent} from "../shared/alert/alert.component";
+import {PlaceholderDirective} from "../shared/placeholder/placeholder.directive";
 
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html'
 })
-export class AuthComponent {
+export class AuthComponent implements OnDestroy{
   isLoginMode = true;
   isLoading = false;
-  error: string = null;
+  @ViewChild(PlaceholderDirective) alertHolst: PlaceholderDirective;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  private closeSubscription: Subscription;
+
+  constructor(private authService: AuthService, private router: Router, private componentFactoryResolver: ComponentFactoryResolver) {}
 
   onSwitchMode() {
     this.isLoginMode = !this.isLoginMode;
@@ -45,11 +49,29 @@ export class AuthComponent {
       },
       errorMessage => {
         console.log(errorMessage);
-        this.error = errorMessage;
         this.isLoading = false;
+        this.showErrorAlert(errorMessage);
       }
     );
 
     form.reset();
+  }
+
+  private showErrorAlert(message: string) {
+    const alertComponentFactory = this.componentFactoryResolver.resolveComponentFactory(AlertComponent);
+    const hostViewContainerRef = this.alertHolst.viewContainerRef;
+    hostViewContainerRef.clear();
+    const alertComponentRef = hostViewContainerRef.createComponent(alertComponentFactory);
+    alertComponentRef.instance.message = message;
+    this.closeSubscription = alertComponentRef.instance.close.subscribe(() => {
+      this.closeSubscription.unsubscribe();
+      hostViewContainerRef.clear();
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.closeSubscription) {
+      this.closeSubscription.unsubscribe();
+    }
   }
 }
