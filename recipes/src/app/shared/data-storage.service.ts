@@ -1,16 +1,13 @@
-import {HttpClient} from "@angular/common/http";
-import {Injectable} from "@angular/core";
-import {RecipeService} from "../recipes/recipe.service";
-import {Recipe} from "../recipes/recipe.model";
-import {BehaviorSubject, exhaustMap, map, take, tap} from "rxjs";
-import {AuthService} from "../auth/auth.service";
-import {User} from "../auth/user.model";
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {map, tap, take, exhaustMap} from 'rxjs/operators';
 
-@Injectable()
+import {Recipe} from '../recipes/recipe.model';
+import {RecipeService} from '../recipes/recipe.service';
+import {AuthService} from '../auth/auth.service';
+
+@Injectable({providedIn: 'root'})
 export class DataStorageService {
-
-  user = new BehaviorSubject<User>(null);
-  token: string = null;
 
   url: string = 'https://ng-complete-guide-158ba-default-rtdb.europe-west1.firebasedatabase.app/recipes.json';
 
@@ -34,4 +31,3 @@ export class DataStorageService {
       );
   }
 }
-
